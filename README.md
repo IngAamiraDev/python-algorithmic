@@ -16,3 +16,4 @@
 ## Other resources
 - [How To Build A Trading Bot In Python](https://www.youtube.com/watch?v=WcfKaZL4vpA)
 - [Le Doy $100 a Chat GPT Para Que Haga Trading Por Mi](https://www.youtube.com/watch?v=JRYqsG4iUpw)
+- [Yahoo Finance](https://es.finance.yahoo.com/)
