@@ -9,7 +9,8 @@ def import_data_yf(symbol):
     
     try:
         df = yf.download(symbol, start=start_date, end=end_date, interval='1d')
-        df = df.drop(columns=["Adj Close", "Volume"])
+        df.columns = ["open", "high", "low", "close", "adj close", "volume"]
+        df = df.drop(columns=["adj close", "volume"])
         df.index.name = "time"  
     except Exception as e:
         print(f"An error occurred: {e}")
