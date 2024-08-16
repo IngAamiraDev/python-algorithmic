@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
+import numpy as np
 
 from src.plots_sma import view_plot_sma, verify_plot_signals_sma, plot_profits_sma
+from src.plots_drawdown import view_plot_drawdown
 from src.charts import setup_plot_styling, save_plot
+from src.strategy import get_sma, get_sortino, get_beta, get_alpha, get_drawdown
 from src.utils import import_data_yf, clear_directory, create_directory
-from src.strategy import get_sma, get_sortino, get_beta, get_alpha
 
 def run():
     """Main function to download data, generate and save plots."""
@@ -24,7 +26,7 @@ def run():
     
     if df is not None:
     
-        # Generate and save plots
+        # Generate and save plots of SMA
         sma = get_sma(df)
         plot_functions = [
             ("view_plot_sma", view_plot_sma, []),
@@ -46,6 +48,12 @@ def run():
         
         alpha = get_alpha(df, beta)
         print(f"Alpha: {'%.1f' % alpha} %")
+
+        drawdown = get_drawdown(df)
+        max_drawdown = -np.min(drawdown)*100
+        view_plot_drawdown(drawdown)
+        save_plot("view_plot_drawdown", symbol, output_dir)
+        print(f"Max drawdown: {'%.1f' % max_drawdown} %")
 
 if __name__ == '__main__':
     run()

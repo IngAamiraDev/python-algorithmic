@@ -58,3 +58,19 @@ def get_alpha(df_symbol, beta):
         return None
 
     return alpha
+
+def get_drawdown(df):
+    """Calculate the Drawdown of the symbol."""
+    try:
+        if df is None:
+            print("Drawdown value is None, Drawdown cannot be calculated.")
+            return None
+        serie = df["close"].pct_change(1).dropna()
+        cum = serie.dropna().cumsum() + 1
+        running_max = np.maximum.accumulate(cum)
+        drawdown = cum/running_max - 1
+    except Exception as e: 
+        print(f"An error occurred in get_drawdown: {e}")
+        return None
+
+    return drawdown

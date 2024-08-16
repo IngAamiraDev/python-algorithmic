@@ -27,6 +27,15 @@ El alfa es una estadístico que indica si la cartera supera al mercado en térmi
 - alfa > 0: La cartera supera al mercado en términos de rentabilidad del riesgo.
 - alfa < 0: la cartera tiene un rendimiento inferior al del mercado en términos de riesgo-rendimiento.
 
+## Drawdown
+
+El drawdown (reducción) es una medida del riesgo de la estrategia. Una estadística interesante para conocer el rendimiento del algoritmo es el drawdown máximo. En efecto, representa la pérdida máxima de una estrategia durante un período de tiempo que nos permite comprender si la estrategia es arriesgada y, por tanto, elegirla en función de nuestro nivel de aversión al riesgo.
+
+## Librerias
+- `pip install yfinance` -> Yahoo Finances
+- `pip install mpl_finance` -> Extensión de mpl para representar información financiera
+- `pip install ta` -> Indicadores técnicos de finasas
+
 ## Environment
 - `source env/bin/activate` -> Activar el ambiente
 - `alias avenv="source env/bin/activate"` -> Crear un alias para activar el ambiente
