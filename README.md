@@ -31,6 +31,11 @@ El alfa es una estadístico que indica si la cartera supera al mercado en térmi
 
 El drawdown (reducción) es una medida del riesgo de la estrategia. Una estadística interesante para conocer el rendimiento del algoritmo es el drawdown máximo. En efecto, representa la pérdida máxima de una estrategia durante un período de tiempo que nos permite comprender si la estrategia es arriesgada y, por tanto, elegirla en función de nuestro nivel de aversión al riesgo.
 
+## Scalping Price Action
+
+- Scalping: operación basada en negociaciones a corto plazo
+- RSI: el indicador que mide los niveles de sobrecompra y sobreventa
+
 ## Librerias
 - `pip install yfinance` -> Yahoo Finances
 - `pip install mpl_finance` -> Extensión de mpl para representar información financiera
@@ -50,3 +55,6 @@ El drawdown (reducción) es una medida del riesgo de la estrategia. Una estadís
 - [How To Build A Trading Bot In Python](https://www.youtube.com/watch?v=WcfKaZL4vpA)
 - [Le Doy $100 a Chat GPT Para Que Haga Trading Por Mi](https://www.youtube.com/watch?v=JRYqsG4iUpw)
 - [Yahoo Finance](https://es.finance.yahoo.com/)
+- [ETF Database](https://etfdb.com/)
+- [S&P 500 Map](https://finviz.com/map.ashx)
+- [Tipranks](https://www.tipranks.com/)
