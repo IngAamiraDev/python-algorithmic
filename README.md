@@ -42,7 +42,7 @@ El drawdown (reducción) es una medida del riesgo de la estrategia. Una estadís
 - `deactivate` -> Salir del ambiente virtual
 
 ## requirements.txt
-- `pip3 freeze` > requirements.txt -> Generar el archivo
+- `pip3 freeze > requirements.txt` > requirements.txt -> Generar el archivo
 - `cat requirements.txt` -> Revisar lo que hay dentro del archivo
 - `pip3 install -r requirements.txt` -> Instalar las dependencias necesarias para contribuir más rápido en proyectos
 
