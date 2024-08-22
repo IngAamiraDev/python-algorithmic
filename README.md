@@ -54,6 +54,10 @@ El drawdown (reducción) es una medida del riesgo de la estrategia. Una estadís
 - `cat requirements.txt` -> Revisar lo que hay dentro del archivo
 - `pip3 install -r requirements.txt` -> Instalar las dependencias necesarias para contribuir más rápido en proyectos
 
+## Books
+- How to make money in stocks
+- Python for finance and Algorithmic Trading
+
 ## Other resources
 - [How To Build A Trading Bot In Python](https://www.youtube.com/watch?v=WcfKaZL4vpA)
 - [Le Doy $100 a Chat GPT Para Que Haga Trading Por Mi](https://www.youtube.com/watch?v=JRYqsG4iUpw)
@@ -61,3 +65,4 @@ El drawdown (reducción) es una medida del riesgo de la estrategia. Una estadís
 - [ETF Database](https://etfdb.com/)
 - [S&P 500 Map](https://finviz.com/map.ashx)
 - [Tipranks](https://www.tipranks.com/)
+
