@@ -1,95 +1,135 @@
 import pandas as pd
 import numpy as np
 import yfinance as yf
-import matplotlib.dates as mpl_dates
 import matplotlib.pyplot as plt
 import ta
 import warnings
+from cycler import cycler
 warnings.filterwarnings("ignore")
 
-def support_resistance(df, duration=5,spread=0):
-  """EL DATAFRAME NECESITA TENER los siguientes nombres de columna: alta, baja, cierre"""
+# Constants
+DURATION = 5
+SPREAD = 0.01
+SYMBOL = "NCL"  # Update this symbol as needed
+OUTPUT_DIR = './img/'
 
-  # Support and resistance building
-  df["support"] = np.nan
-  df["resistance"] = np.nan
+# Utility Functions
+def create_directory(output_dir):
+    """Create the output directory if it does not exist."""
+    import os
+    os.makedirs(output_dir, exist_ok=True)
 
-  df.loc[(df["low"].shift(5) > df["low"].shift(4)) &
-        (df["low"].shift(4) > df["low"].shift(3)) &
-        (df["low"].shift(3) > df["low"].shift(2)) &
-        (df["low"].shift(2) > df["low"].shift(1)) &
-        (df["low"].shift(1) > df["low"].shift(0)), "support"] = df["low"]
+def save_plot(name: str, symbol: str, output_dir: str) -> None:
+    """Save the plot to the specified directory."""
+    try:
+        plt.savefig(f'{output_dir}/{name}_{symbol}.png')
+        plt.close()
+    except Exception as e:
+        print(f"An error occurred while saving the plot: {e}")
 
+def import_data_yf(symbol):
+    """Download data from Yahoo Finance using yfinance."""
+    df = yf.download(symbol, interval="1d").dropna()
 
-  df.loc[(df["high"].shift(5) < df["high"].shift(4)) &
-  (df["high"].shift(4) < df["high"].shift(3)) &
-  (df["high"].shift(3) < df["high"].shift(2)) &
-  (df["high"].shift(2) < df["high"].shift(1)) &
-  (df["high"].shift(1) < df["high"].shift(0)), "resistance"] = df["high"]
+    # Rename columns
+    df = df.rename(columns={"Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"})
+    df.index.name = "time"
+    return df
 
+def support_resistance(df, duration=DURATION, spread=SPREAD):
+    """Calculate support and resistance levels and generate trading signals."""
+    
+    # Support and resistance building
+    df["support"] = np.nan
+    df["resistance"] = np.nan
 
-  # Create Simple moving average 30 days
-  df["SMA fast"] = df["close"].rolling(30).mean()
+    df.loc[(df["low"].shift(5) > df["low"].shift(4)) &
+           (df["low"].shift(4) > df["low"].shift(3)) &
+           (df["low"].shift(3) > df["low"].shift(2)) &
+           (df["low"].shift(2) > df["low"].shift(1)) &
+           (df["low"].shift(1) > df["low"].shift(0)), "support"] = df["low"]
 
-  # Create Simple moving average 60 days
-  df["SMA slow"] = df["close"].rolling(60).mean()
+    df.loc[(df["high"].shift(5) < df["high"].shift(4)) &
+           (df["high"].shift(4) < df["high"].shift(3)) &
+           (df["high"].shift(3) < df["high"].shift(2)) &
+           (df["high"].shift(2) < df["high"].shift(1)) &
+           (df["high"].shift(1) < df["high"].shift(0)), "resistance"] = df["high"]
 
-  df["rsi"] = ta.momentum.RSIIndicator(df["close"], window=10).rsi()
+    # Create Simple moving average 30 days
+    df["SMA fast"] = df["close"].rolling(30).mean()
 
-  # RSI yersteday
-  df["rsi yersteday"] = df["rsi"].shift(1)
+    # Create Simple moving average 60 days
+    df["SMA slow"] = df["close"].rolling(60).mean()
 
-  # Create the signal
-  df["signal"] = 0
+    df["rsi"] = ta.momentum.RSIIndicator(df["close"], window=10).rsi()
 
-  df["smooth resistance"] = df["resistance"].fillna(method="ffill")
-  df["smooth support"] = df["support"].fillna(method="ffill")
+    # RSI yesterday
+    df["rsi yesterday"] = df["rsi"].shift(1)
 
+    # Create the signal
+    df["signal"] = 0
 
-  condition_1_buy = (df["close"].shift(1) < df["smooth resistance"].shift(1)) & \
-                    (df["smooth resistance"]*(1+0.5/100) < df["close"])
-  condition_2_buy = df["SMA fast"] > df["SMA slow"]
+    df["smooth resistance"] = df["resistance"].fillna(method="ffill")
+    df["smooth support"] = df["support"].fillna(method="ffill")
 
-  condition_3_buy = df["rsi"] < df["rsi yersteday"]
+    condition_1_buy = (df["close"].shift(1) < df["smooth resistance"].shift(1)) & \
+                      (df["smooth resistance"]*(1+0.5/100) < df["close"])
+    condition_2_buy = df["SMA fast"] > df["SMA slow"]
+    condition_3_buy = df["rsi"] < df["rsi yesterday"]
 
-  condition_1_sell = (df["close"].shift(1) > df["smooth support"].shift(1)) & \
-                    (df["smooth support"]*(1+0.5/100) > df["close"])
-  condition_2_sell = df["SMA fast"] < df["SMA slow"]
+    condition_1_sell = (df["close"].shift(1) > df["smooth support"].shift(1)) & \
+                       (df["smooth support"]*(1+0.5/100) > df["close"])
+    condition_2_sell = df["SMA fast"] < df["SMA slow"]
+    condition_3_sell = df["rsi"] > df["rsi yesterday"]
 
-  condition_3_sell = df["rsi"] > df["rsi yersteday"]
+    df.loc[condition_1_buy & condition_2_buy & condition_3_buy, "signal"] = 1
+    df.loc[condition_1_sell & condition_2_sell & condition_3_sell, "signal"] = -1
 
+    # Calculate returns
+    df["pct"] = df["close"].pct_change(1)
+    df["return"] = np.array([df["pct"].shift(i) for i in range(duration)]).sum(axis=0) * (df["signal"].shift(duration))
+    df.loc[df["return"] == -1, "return"] = df["return"] - spread
+    df.loc[df["return"] == 1, "return"] = df["return"] - spread
 
+    return df["return"]
 
-  df.loc[condition_1_buy & condition_2_buy & condition_3_buy, "signal"] = 1
-  df.loc[condition_1_sell & condition_2_sell & condition_3_sell, "signal"] = -1
+def setup_plot_styling():
+    """Setup custom plot styling."""
+    colors = cycler('color', ['#669FEE', '#66EE91', '#9988DD', '#EECC55', '#88BB44', '#FFBBBB'])
+    plt.rc('figure', facecolor='#313233')
+    plt.rc('axes', facecolor="#313233", edgecolor='none', axisbelow=True, grid=True, prop_cycle=colors, labelcolor='gray')
+    plt.rc('grid', color='#474A4A', linestyle='solid')
+    plt.rc('xtick', color='gray')
+    plt.rc('ytick', direction='out', color='gray')
+    plt.rc('legend', facecolor="#313233", edgecolor="#313233")
+    plt.rc("text", color="#C9C9C9")
 
+def plot_returns(returns, symbol):
+    """Plot cumulative returns and save the plot."""
+    plt.figure(figsize=(15, 8))
+    plt.plot(returns.cumsum(), label='Cumulative Returns', color='blue')
+    plt.title(f'Cumulative Returns for {symbol}')
+    plt.xlabel('Date')
+    plt.ylabel('Cumulative Returns')
+    plt.legend()
+    plt.grid(True)
 
-  # Calculamos las ganancias
-  df["pct"] = df["close"].pct_change(1)
+    # Save plot
+    save_plot('cumulative_returns', symbol, OUTPUT_DIR)
 
-  df["return"] = np.array([df["pct"].shift(i) for i in range(duration)]).sum(axis=0) * (df["signal"].shift(duration))
-  df.loc[df["return"]==-1, "return"] = df["return"]-spread
-  df.loc[df["return"]==1, "return"] = df["return"]-spread
+def main():
+    # Setup
+    setup_plot_styling()
+    create_directory(OUTPUT_DIR)
+    
+    # Download data
+    df = import_data_yf(SYMBOL)
 
+    # Apply support and resistance analysis
+    returns = support_resistance(df)
 
-  return df["return"]
-     
+    # Plot and save results
+    plot_returns(returns, SYMBOL)
 
-# Función de Pre Procesado
-
-def preprocessing_min(name):
-
-  # Import the data
-  df = pd.read_csv(name, delimiter="\t", index_col=["",""] , parse_dates=True).dropna()
-
-  # Delete the two last columns
-  df = df.iloc[:,:-2]
-
-  # Rename
-  df.columns = ["open", "high", "low", "close", "volume"]
-  #df.index.name = "time"
-  return df
-
-
-dfc = preprocessing_min("EURUSD_M1.csv")
-support_resistance(df).cumsum().plot(figsize=(15,8))
+if __name__ == '__main__':
+    main()

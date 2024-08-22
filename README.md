@@ -40,6 +40,9 @@ El drawdown (reducción) es una medida del riesgo de la estrategia. Una estadís
 - `pip install yfinance` -> Yahoo Finances
 - `pip install mpl_finance` -> Extensión de mpl para representar información financiera
 - `pip install ta` -> Indicadores técnicos de finasas
+- `pip install seaborn` -> 
+- `pip install mplfinance` ->
+- `pip install plotly` ->
 
 ## Environment
 - `source env/bin/activate` -> Activar el ambiente
