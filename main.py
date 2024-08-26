@@ -11,7 +11,7 @@ def run():
     """Main function to download data, generate and save plots for each symbol."""
     year = "2024"
     output_dir = './img/'
-    symbols = ["NCL", "VWO", "SCHP", "VEA", "VTEB", "VTI", "LQD", "VIG"]
+    symbols = ["AAPL", "MSFT", "AMZN", "META", "GOLD"]
     symbol_sp500 = "^GSPC"
     
     # Setup plot styling and manage output directory

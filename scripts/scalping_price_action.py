@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore")
 # Constants
 DURATION = 5
 SPREAD = 0.01
-SYMBOL = "NCL"  # Update this symbol as needed
+SYMBOL = "AAPL"  # Update this symbol as needed
 OUTPUT_DIR = './img/'
 
 # Utility Functions
