@@ -1,17 +1,24 @@
 from datetime import datetime, timedelta
 import numpy as np
 
-from src.plots_sma import view_plot_sma, verify_plot_signals_sma, plot_profits_sma
+from src.plots_sma import (
+    view_plot_sma_30_60, verify_plot_signals_sma_30_60, 
+    view_plot_sma_200_50_20, verify_plot_signals_sma_200_50_20, 
+    plot_profits_sma
+)
 from src.plots_drawdown import view_plot_drawdown
 from src.charts import setup_plot_styling, save_plot
-from src.strategy import get_sma, get_sortino, get_beta, get_alpha, get_drawdown
+from src.strategy import (
+    get_sma_30_60, get_sma_200_50_20, 
+    get_sortino, get_beta, get_alpha, get_drawdown
+)
 from src.utils import import_data_yf, clear_directory, create_directory
 
 def run():
     """Main function to download data, generate and save plots for each symbol."""
     year = "2024"
     output_dir = './img/'
-    symbols = ["AAPL", "MSFT", "AMZN", "META", "GOLD"]
+    symbols = ["AAPL", "MSFT", "AMZN", "META", "GOLD", "O"]
     symbol_sp500 = "^GSPC"
     
     # Setup plot styling and manage output directory
@@ -29,16 +36,28 @@ def run():
         df = import_data_yf(symbol, start_date, end_date)
         
         if df is not None:
-            # Generate and save plots of SMA
-            sma = get_sma(df)
-            plot_functions = [
-                ("view_plot_sma", view_plot_sma, []),
-                ("verify_signals_sma", verify_plot_signals_sma, [year]),
-                ("profits_sma", plot_profits_sma, []),
+            # Strategy 1: SMA 30/60
+            sma_30_60 = get_sma_30_60(df)
+            plot_functions_30_60 = [
+                ("view_plot_sma_30_60", view_plot_sma_30_60, []),
+                ("verify_signals_sma_30_60", verify_plot_signals_sma_30_60, [year]),
+                ("profits_sma_30_60", plot_profits_sma, []),
             ]
 
-            for plot_name, plot_func, args in plot_functions:
-                plot_func(sma, *args)
+            for plot_name, plot_func, args in plot_functions_30_60:
+                plot_func(sma_30_60, *args)
+                save_plot(plot_name, symbol, output_dir)
+            
+            # Strategy 2: SMA 200/50/20
+            sma_200_50_20 = get_sma_200_50_20(df)
+            plot_functions_200_50_20 = [
+                ("view_plot_sma_200_50_20", view_plot_sma_200_50_20, []),
+                ("verify_signals_sma_200_50_20", verify_plot_signals_sma_200_50_20, []),
+                ("profits_sma_200_50_20", plot_profits_sma, []),
+            ]
+
+            for plot_name, plot_func, args in plot_functions_200_50_20:
+                plot_func(sma_200_50_20, *args)
                 save_plot(plot_name, symbol, output_dir)
             
             # Calculate and print financial metrics

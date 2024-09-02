@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-def get_sma(df):
-    """Calculate Simple Moving Averages and generate trading signals."""        
+def get_sma_30_60(df):
+    """Calculate Simple Moving Averages (30/60) and generate trading signals."""        
     try:
         df["sma_fast"] = df["close"].rolling(30).mean()
         df["sma_slow"] = df["close"].rolling(60).mean()
@@ -10,7 +10,22 @@ def get_sma(df):
         df["pct"] = df["close"].pct_change(1)
         df["return"] = df["pct"] * df["position"].shift(1)
     except Exception as e: 
-        print(f"An error occurred in get_sma: {e}")
+        print(f"An error occurred in get_sma_30_60: {e}")
+        return None
+    
+    return df
+
+def get_sma_200_50_20(df):
+    """Calculate Simple Moving Averages (200/50/20) and generate trading signals."""        
+    try:
+        df["sma_200"] = df["close"].rolling(200).mean()
+        df["sma_50"] = df["close"].rolling(50).mean()
+        df["sma_20"] = df["close"].rolling(20).mean()
+        df["position"] = np.where(df["sma_50"] > df["sma_200"], 1, -1)
+        df["pct"] = df["close"].pct_change(1)
+        df["return"] = df["pct"] * df["position"].shift(1)
+    except Exception as e: 
+        print(f"An error occurred in get_sma_200_50_20: {e}")
         return None
     
     return df

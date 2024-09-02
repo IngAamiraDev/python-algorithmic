@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Constants
 DURATION = 5
 SPREAD = 0.01
-SYMBOL = "AAPL"
+SYMBOL = "O"
 OUTPUT_DIR = './img/'
 
 # Utility Functions

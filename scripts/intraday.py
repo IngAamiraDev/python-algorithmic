@@ -179,7 +179,7 @@ def create_directory(output_dir: str) -> None:
 
 def main() -> None:
     """Entry point for the script."""
-    symbols = ["BTC-USD", "ETH-USD"]
+    symbols = ["AAPL", "^GSPC"]
     output_dir = './img'
 
     # Ensure the output directory exists and clear old files
