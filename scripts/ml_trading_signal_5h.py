@@ -28,21 +28,34 @@ def calculate_indicators(df):
     df.dropna(inplace=True)
     return df
 
-def prepare_data(df):
+def prepare_data(df, time_limit='5h'):
     """
-    Prepare data for machine learning model.
+    Prepare data for machine learning model, ensuring targets are within 5 hours.
     """
     if df.empty:
         print("DataFrame is empty after calculations")
         return None, None
 
-    df['target'] = (df['close'].shift(-1) > df['close']).astype(int)
+    # Define the time limit for intraday trading (e.g., 5 hours)
+    time_limit_td = pd.Timedelta(time_limit)
+
+    # Calculate target based on whether the price reaches a threshold within 5 hours
+    df['target'] = 0
+    for i in range(len(df)):
+        current_time = df.index[i]
+        future_time_limit = current_time + time_limit_td
+
+        # Check if within 5 hours, the price exceeds a certain threshold (e.g., 1% gain)
+        future_data = df[(df.index > current_time) & (df.index <= future_time_limit)]
+        if not future_data.empty:
+            if future_data['close'].max() > df['close'].iloc[i] * 1.01:  # Example: 1% gain
+                df.at[df.index[i], 'target'] = 1
+
     features = df[['SMA fast', 'SMA slow', 'rsi']].values
     labels = df['target'].values
 
     if len(features) == 0 or len(labels) == 0:
         print("Features or labels are empty")
-        return None, None
     
     return features, labels
 
@@ -89,25 +102,35 @@ def generate_signals(df):
     buy_signal = df[df['predicted'] == 1]['close'].min()
     sell_signal = df[df['predicted'] == 0]['close'].max()
     stop_loss = buy_signal * 0.98 if buy_signal is not None else None  # Example: 2% below buy price
-    
+
     # Calculate percentage change between buy and sell signals
     percent_change = ((sell_signal - buy_signal) / buy_signal * 100) if buy_signal and sell_signal else None
     
     return buy_signal, sell_signal, stop_loss, percent_change
 
-def accumulate_signals(signals_list, symbol, buy_signal, sell_signal, stop_loss, percent_change):
+def print_signals(symbol, buy_signal, sell_signal, stop_loss, percent_change):
     """
-    Accumulate the generated trading signals into a list.
+    Print the generated trading signals without the date.
     """
-    signals_list.append({
-        'Symbol': symbol,
-        'Buy': f"{buy_signal:.2f}" if pd.notna(buy_signal) else 'No Buy Signal',
-        'Sell': f"{sell_signal:.2f}" if pd.notna(sell_signal) else 'No Sell Signal',
-        'Stop-Loss': f"{stop_loss:.2f}" if pd.notna(stop_loss) else 'No Stop-Loss Trigger',
-        'Percentage-Change': f"{percent_change:.2f}%" if pd.notna(percent_change) else 'No Percentage Change'
-    })
+    print(f"Symbol: {symbol}")
+    if pd.notna(buy_signal):
+        print(f"Buy: {buy_signal:.2f}")
+    else:
+        print("No Buy Signal")
+    if pd.notna(sell_signal):
+        print(f"Sell: {sell_signal:.2f}")
+    else:
+        print("No Sell Signal")
+    if pd.notna(stop_loss):
+        print(f"Stop: {stop_loss:.2f}")
+    else:
+        print("No Stop-Loss Trigger")
+    if pd.notna(percent_change):
+        print(f"Percentage Change: {percent_change:.2f}%")
+    else:
+        print("No Percentage Change")
 
-def process_symbol(symbol, start_date, end_date, interval, signals_list):
+def process_symbol(symbol, start_date, end_date, interval):
     """
     Process a single symbol through the full pipeline.
     """
@@ -122,32 +145,16 @@ def process_symbol(symbol, start_date, end_date, interval, signals_list):
     model = train_model(features, labels)
     df = make_predictions(df, model)
     buy_signal, sell_signal, stop_loss, percent_change = generate_signals(df)
-    accumulate_signals(signals_list, symbol, buy_signal, sell_signal, stop_loss, percent_change)
+    print_signals(symbol, buy_signal, sell_signal, stop_loss, percent_change)
 
 def main():
-    symbols = ['SOXS', 'GOOGL', 'MSFT', 'KO', 'AAPL', 'MDB', 'OTIS', 'DIS', 'GOLD', 'DD', 'JNJ', 'JPM', 'PEP']
-    #end_date = datetime.datetime.now().strftime('%Y-%m-%d')
-    #start_date = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime('%Y-%m-%d')
-    start_date = '2024-08-05'
-    end_date = '2024-08-09'
+    symbols = ['AAPL', 'MSFT', 'GOOGL', 'SOXS', 'MRVL', 'KO']  # List of symbols to process
+    end_date = datetime.datetime.now().strftime('%Y-%m-%d')
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime('%Y-%m-%d')
     interval = '5m'
     
-    signals_list = []
-    
     for symbol in symbols:
-        process_symbol(symbol, start_date, end_date, interval, signals_list)
-    
-    # Convert the list of signals into a DataFrame
-    signals_df = pd.DataFrame(signals_list)
-
-    # Convert 'Percentage-Change' to numeric for sorting
-    signals_df['Percentage-Change'] = signals_df['Percentage-Change'].str.replace('%', '').astype(float, errors='ignore')
-
-    # Sort by 'Percentage-Change' in descending order
-    signals_df = signals_df.sort_values(by='Percentage-Change', ascending=False)
-    
-    # Print the sorted DataFrame without index
-    print(signals_df.to_string(index=False))
+        process_symbol(symbol, start_date, end_date, interval)
 
 if __name__ == "__main__":
     main()
