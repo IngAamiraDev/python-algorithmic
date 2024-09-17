@@ -125,11 +125,24 @@ def process_symbol(symbol, start_date, end_date, interval, signals_list):
     accumulate_signals(signals_list, symbol, buy_signal, sell_signal, stop_loss, percent_change)
 
 def main():
-    symbols = ['SOXS', 'GOOGL', 'MSFT', 'KO', 'AAPL', 'MDB', 'OTIS', 'DIS', 'GOLD', 'DD', 'JNJ', 'JPM', 'PEP']
+    symbols = [
+        'TM', 'INTC', 'NXT', 'AFRM', 'DELL', 'PFE', 'RDDT', 'ABT', 'CAVA', 'BBY',
+        'MRVL', 'KMB', 'DDOG', 'LEVI', 'UBER', 'CPB', 'DD', 'MAT', 'V', 'PAYX',
+        'RACE', 'MKC', 'SWK', 'TGT', 'HSY', 'AVGO', 'MCD', 'TJX', 'SOFI', 'SCHW', 'BAC',
+        'BROS', 'BOWL', 'NFLX', 'SHOP', 'GM', 'WM', 'EMR', 'GS', 'LIN', 'MP',
+        'BRK-B', 'WMT', 'NUE', 'PINS', 'SLB', 'DHR', 'JNJ', 'HD', 'ADBE', 'CAT',
+        'ULTA', 'HON', 'AMAT', 'LULU', 'SBUX', 'HUM', 'JPM', 'MS', 'CMG', 'PG',
+        'AEP', 'MSFT', 'GOOG', 'CSCO', 'VZ', 'WFC', 'SNOW', 'ABNB', 'MA', 'AXP',
+        'CRM', 'PYPL', 'HPE', 'DRI', 'GIS', 'BABA', 'TSM', 'CEG', 'BIIB', 'GOLD',
+        'O', 'AMD', 'NVDA', 'META', 'GOOGL', 'KO', 'RCL', 'PLTR', 'ARM', 'STZ',
+        'COST', 'ETN', 'TTWO', 'INTU', 'WING', 'BA', 'MELI', 'DKNG', 'NKE', 'GAP',
+        'PANW', 'PEP', 'DIS', 'OTIS', 'GTLB', 'MDB', 'TSLA', 'SARK', 'SOXS', 'TMF', 'VST',
+        'SMMT'
+    ]
     #end_date = datetime.datetime.now().strftime('%Y-%m-%d')
     #start_date = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime('%Y-%m-%d')
-    start_date = '2024-08-05'
-    end_date = '2024-08-09'
+    start_date = '2024-09-11'
+    end_date = '2024-09-13'
     interval = '5m'
     
     signals_list = []
