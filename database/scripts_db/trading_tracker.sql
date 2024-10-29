@@ -1,4 +1,6 @@
 
+DROP TABLE IF EXISTS public.trading_tracker;
+
 CREATE TABLE trading_tracker (
     id_trade SERIAL PRIMARY KEY,
     date_trade DATE,
@@ -10,5 +12,6 @@ CREATE TABLE trading_tracker (
 	count_day_trading INT,
 	pdt_alert VARCHAR(10),
 	last_buy_price NUMERIC(10, 2),
-	profit_Loss NUMERIC(10, 2)
+	profit_Loss NUMERIC(10, 2),
+	description VARCHAR(100)
 );

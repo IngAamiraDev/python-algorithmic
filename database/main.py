@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine, MetaData, Table, insert, text
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
 import logging
@@ -96,15 +97,16 @@ def insert_data_to_postgresql(df: pd.DataFrame, engine, table_name: str):
                 # Prepare data for insertion
                 data = {
                     'date_trade': row.get('Date', pd.NaT).strftime('%Y-%m-%d') if not pd.isna(row.get('Date')) else None,
-                    'status': row.get('Status', '') or '',
-                    'tickers': row.get('Asset', '') or '',
+                    'status': row.get('Status', '') if not pd.isna(row.get('Status')) else '',
+                    'tickers': row.get('Asset', '') if not pd.isna(row.get('Asset')) else '',
                     'shares': row.get('Shares', 0) if not pd.isna(row.get('Shares')) else 0,
                     'cost_shares': row.get('Cost/Shares', 0) if not pd.isna(row.get('Cost/Shares')) else 0,
                     'cost_basis': row.get('Cost Basis', 0) if not pd.isna(row.get('Cost Basis')) else 0,
                     'count_day_trading': row.get('Day Trading', 0) if not pd.isna(row.get('Day Trading')) else 0,
-                    'pdt_alert': row.get('PDT Alert', '') or '',
+                    'pdt_alert': row.get('PDT Alert', '') if not pd.isna(row.get('PDT Alert')) else '',
                     'last_buy_price': row.get('Last Buy Price', 0) if not pd.isna(row.get('Last Buy Price')) else 0,
-                    'profit_loss': row.get('Profit/Loss', 0) if not pd.isna(row.get('Profit/Loss')) else 0
+                    'profit_loss': row.get('Profit/Loss', 0) if not pd.isna(row.get('Profit/Loss')) else 0,
+                    'description': row.get('Description', '') if not pd.isna(row.get('Description')) else ''
                 }
 
                 # Create an insert statement using SQLAlchemy Core
@@ -115,21 +117,32 @@ def insert_data_to_postgresql(df: pd.DataFrame, engine, table_name: str):
 
         logging.info(f"Data successfully inserted into PostgreSQL table '{table_name}'.")
 
-def delete_null_date_rows(engine, table_name: str):
+def truncate_table(engine, tables, schema: str = 'public'):
     """
-    Deletes rows with null 'date_trade' from the PostgreSQL table.
+    Truncates the specified tables in PostgreSQL, using the given schema and cascading dependencies.
     
     :param engine: SQLAlchemy engine for PostgreSQL connection.
-    :param table_name: Target table in PostgreSQL.
+    :param tables: List of table names to truncate, or a single table name as a string.
+    :param schema: Schema of the tables. Default is 'public'.
     """
-    with engine.connect() as connection:
+    # Convert to a list if `tables` is a string
+    if isinstance(tables, str):
+        tables = [tables]
+
+    metadata = MetaData()
+    Session = sessionmaker(bind=engine)
+    
+    with Session() as session:
         try:
-            # Use the text construct to execute raw SQL
-            delete_stmt = text(f"DELETE FROM {table_name} WHERE date_trade IS NULL")
-            result = connection.execute(delete_stmt)
-            logging.info(f"Deleted {result.rowcount} rows with null 'date_trade' from table '{table_name}'.")
+            for table_name in tables:
+                table = Table(table_name, metadata, autoload_with=engine, schema=schema)
+                session.execute(text(f'TRUNCATE TABLE {schema}.{table_name} CASCADE'))
+                logging.info(f"Successfully truncated to table '{schema}.{table_name}'.")
+            
+            session.commit()
         except SQLAlchemyError as e:
-            logging.error(f"Error deleting rows: {e}")
+            session.rollback()
+            logging.error(f"Error truncating tables: {str(e)}")
 
 def main():
     # File and database parameters
@@ -153,10 +166,10 @@ def main():
     engine = create_db_engine(db_config['user'], db_config['password'], db_config['host'], db_config['port'], db_config['db_name'])
 
     if engine:
+        # Truncate table 
+        truncate_table(engine, table_name)
         # Insert data into PostgreSQL
         insert_data_to_postgresql(df, engine, table_name)
-        # Delete rows with null 'date_trade'
-        #delete_null_date_rows(engine, table_name)
         # Ensure engine is disposed of after usage
         engine.dispose()
         logging.info("Database engine disposed.")
